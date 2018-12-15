@@ -46,7 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\Grain.cs" />
+    <Compile Include="Classes\Cell.cs" />
     <Compile Include="Classes\Grid.cs" />
     <Compile Include="Types\BoundaryConditionType.cs" />
     <Compile Include="Types\AlgorithMode.cs" />

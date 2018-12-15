@@ -39,7 +39,6 @@ namespace CellularAutomata2D.Classes {
 
         public bool SetStatus(bool status) {
             this.status = status;
-
             return true;
         }
 
@@ -54,6 +53,7 @@ namespace CellularAutomata2D.Classes {
 
         public bool ChangeStatus() {
             this.status = !this.status;
+            this.Refresh();
             return true;
         }
 
