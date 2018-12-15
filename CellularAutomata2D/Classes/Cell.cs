@@ -39,13 +39,14 @@ namespace CellularAutomata2D.Classes {
 
         public bool SetStatus(bool status) {
             this.status = status;
+
             return true;
         }
 
         public bool SetGrainId(int grainId) {
             this.grainId = grainId;
-
             this.color = ColorManager.GetHexColor(Cell.i, grainId);
+
             return true;
         }
 
@@ -54,6 +55,7 @@ namespace CellularAutomata2D.Classes {
         public bool ChangeStatus() {
             this.status = !this.status;
             this.Refresh();
+
             return true;
         }
 

@@ -16,7 +16,7 @@ namespace CellularAutomata2D {
     public partial class Interface : Form {
         // Configuration consts
 
-        private const int SIZE = 50;
+        private const int SIZE = 500;
 
         // GUI generation params
 
@@ -217,7 +217,7 @@ namespace CellularAutomata2D {
                     break;
 
                 case "hexrandom":
-                    this.algorithmMode = new Random().Next(0, 2) == 1 ? AlgorithmMode.GrainGrowthHexLeft : AlgorithmMode.GrainGrowthHexRight;
+                    this.algorithmMode = AlgorithmMode.GrainGrowthHexRandom;
                     break;
 
                 case "pexleft":
@@ -229,7 +229,7 @@ namespace CellularAutomata2D {
                     break;
 
                 case "pexrandom":
-                    this.algorithmMode = new Random().Next(0, 2) == 1 ? AlgorithmMode.GrainGrowthPegLeft : AlgorithmMode.GrainGrowthPegRight;
+                    this.algorithmMode = AlgorithmMode.GrainGrowthPegRandom;
                     break;
             }
         }

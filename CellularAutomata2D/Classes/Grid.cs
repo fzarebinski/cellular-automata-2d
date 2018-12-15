@@ -40,6 +40,7 @@ namespace CellularAutomata2D.Classes {
 
         public int[] GetGridSize() {
             int[] size = { this.cells.GetLength(0), this.cells.GetLength(1) };
+
             return size;
         }
 
@@ -124,6 +125,7 @@ namespace CellularAutomata2D.Classes {
             }
 
             this.cells[i, j].ChangeStatus();
+
             return true;
         }
 
@@ -452,15 +454,24 @@ namespace CellularAutomata2D.Classes {
 
                     return false;
 
-                default: // all grain growth algorithms
-                    grainId = this.CheckConditions(this.GetAlgorithmConditions(i, j, algorithmMode), this.GetCorrectGridElement(i, j), boundaryConditionType);
+                case AlgorithmMode.GrainGrowthPegRandom:
+                    algorithmMode = new Random().Next(0, 2) == 1 ? AlgorithmMode.GrainGrowthPegLeft : AlgorithmMode.GrainGrowthPegRight;
+                    break;
 
-                    if (grainId == -1) return false;
-
-                    this.GetCorrectGridElement(i, j, boundaryConditionType).SetGrainId(grainId);
-
-                    return true;
+                case AlgorithmMode.GrainGrowthHexRandom:
+                    algorithmMode = new Random().Next(0, 2) == 1 ? AlgorithmMode.GrainGrowthHexLeft : AlgorithmMode.GrainGrowthHexRight;
+                    break;
             }
+
+            // all grain growth algorithms
+
+            grainId = this.CheckConditions(this.GetAlgorithmConditions(i, j, algorithmMode), this.GetCorrectGridElement(i, j), boundaryConditionType);
+
+            if (grainId == -1) return false;
+
+            this.GetCorrectGridElement(i, j, boundaryConditionType).SetGrainId(grainId);
+
+            return true;
         }
     }
 }
