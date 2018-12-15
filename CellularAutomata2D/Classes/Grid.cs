@@ -12,7 +12,7 @@ namespace CellularAutomata2D.Classes {
         // Constructors
 
         public Grid(int height, int width) {
-            Cell.RefreshAutoIncrement(); // every new grid has different GrainIds
+            Cell.RefreshAutoIncrement(); // every new grid has separated increment GrainIds
 
             this.cells = new Cell[height, width];
 
@@ -24,6 +24,8 @@ namespace CellularAutomata2D.Classes {
         }
 
         public Grid(Grid grid) {
+            Cell.RefreshAutoIncrement(); // every new grid has separated increment GrainIds
+
             int[] size = grid.GetGridSize();
             this.cells = new Cell[size[0], size[1]];
 
@@ -50,9 +52,9 @@ namespace CellularAutomata2D.Classes {
         }
 
         // Smart getters
-        
-        public bool GetCorrectValue(int i, int j, BoundaryConditionType boundaryCondition = BoundaryConditionType.Periodic) {
-            switch (boundaryCondition) {
+
+        public bool GetCorrectValue(int i, int j, BoundaryConditionType boundaryConditionType = BoundaryConditionType.Periodic) {
+            switch (boundaryConditionType) {
                 case BoundaryConditionType.Periodic:
                     if (i < 0) i = (this.cells.GetLength(0) + i) % this.cells.GetLength(0);
                     if (i >= this.cells.GetLength(0)) i = i % this.cells.GetLength(0);
@@ -71,8 +73,8 @@ namespace CellularAutomata2D.Classes {
             return this.cells[i, j].GetStatus();
         }
 
-        public Cell GetCorrectGridElement(int i, int j, BoundaryConditionType boundaryCondition = BoundaryConditionType.Periodic) {
-            switch (boundaryCondition) {
+        public Cell GetCorrectGridElement(int i, int j, BoundaryConditionType boundaryConditionType = BoundaryConditionType.Periodic) {
+            switch (boundaryConditionType) {
                 case BoundaryConditionType.Periodic:
                     if (i < 0) i = (this.cells.GetLength(0) + i) % this.cells.GetLength(0);
                     if (i >= this.cells.GetLength(0)) i = i % this.cells.GetLength(0);
@@ -81,7 +83,7 @@ namespace CellularAutomata2D.Classes {
                     if (j >= this.cells.GetLength(1)) j = j % this.cells.GetLength(1);
                     break;
 
-                default:
+                case BoundaryConditionType.NonPeriodic:
                     if (i < 0 || i >= this.cells.GetLength(0) || j < 0 || j >= this.cells.GetLength(1)) {
                         return null;
                     }
@@ -93,8 +95,8 @@ namespace CellularAutomata2D.Classes {
 
         // Setters
 
-        public bool SetCorrectGridElement(int i, int j, bool value, BoundaryConditionType boundaryCondition = BoundaryConditionType.Periodic) {
-            switch (boundaryCondition) {
+        public bool SetCorrectGridElement(int i, int j, bool value, BoundaryConditionType boundaryConditionType = BoundaryConditionType.Periodic) {
+            switch (boundaryConditionType) {
                 case BoundaryConditionType.Periodic:
                     if (i < 0) i = (this.cells.GetLength(0) + i) % this.cells.GetLength(0);
                     if (i >= this.cells.GetLength(0)) i = i % this.cells.GetLength(0);
@@ -103,8 +105,11 @@ namespace CellularAutomata2D.Classes {
                     if (j >= this.cells.GetLength(1)) j = j % this.cells.GetLength(1);
                     break;
 
-                default:
-                    return false;
+                case BoundaryConditionType.NonPeriodic:
+                    if (i < 0 || i >= this.cells.GetLength(0) || j < 0 || j >= this.cells.GetLength(1)) {
+                        return false;
+                    }
+                    break;
             }
 
             this.cells[i, j].SetStatus(value);
@@ -126,6 +131,7 @@ namespace CellularAutomata2D.Classes {
 
         public Dictionary<int, int> GetGrainSizes() {
             Dictionary<int, int> grainsSize = new Dictionary<int, int>();
+
             for (int i = 0; i < this.cells.GetLength(0); i++) {
                 for (int j = 0; j < this.cells.GetLength(1); j++) {
                     if (this.GetCorrectValue(i, j)) {
@@ -144,6 +150,7 @@ namespace CellularAutomata2D.Classes {
 
         public Dictionary<int, int> GetGrainBorderLengths() {
             Dictionary<int, int> grainBorderLenghts = new Dictionary<int, int>();
+
             for (int i = 0; i < this.cells.GetLength(0); i++) {
                 for (int j = 0; j < this.cells.GetLength(1); j++) {
                     if (this.GetCorrectValue(i, j)) {
@@ -178,7 +185,7 @@ namespace CellularAutomata2D.Classes {
                 sum += grainBorderLength.Value;
             }
 
-            return sum / 2;
+            return sum / 2; // two elements contains the same border, so it is counted twice
         }
 
         public float GetAverangeGrainSize() {
@@ -211,13 +218,16 @@ namespace CellularAutomata2D.Classes {
 
         public void FillCells(FillCellsType fillCellsType, int[] fillParams = null) {
             int[] gridSize = this.GetGridSize();
+            Random random = new Random();
 
             switch (fillCellsType) {
                 case FillCellsType.ChaosRandom:
                     for (int i = 0; i < gridSize[0]; i++) {
                         for (int j = 0; j < gridSize[1]; j++) {
-                            bool value = (new Random()).Next(0, 2) == 1;
+                            bool value = random.Next(0, 2) == 1;
                             this.SetCorrectGridElement(i, j, value);
+
+                            this.GetCorrectGridElement(i, j).Refresh();
                         }
                     }
                     break;
@@ -226,6 +236,8 @@ namespace CellularAutomata2D.Classes {
                     for (int i = 0; i < gridSize[0]; i++) {
                         for (int j = 0; j < gridSize[1]; j++) {
                             this.SetCorrectGridElement(i, j, false);
+
+                            this.GetCorrectGridElement(i, j).Refresh();
                         }
                     }
                     break;
@@ -234,17 +246,19 @@ namespace CellularAutomata2D.Classes {
                     int grainsToCreate = fillParams[0];
                     int space = fillParams[1];
                     space += 1;
-                    
+
                     int[] max = this.GetGridSize();
-                    int[] position = { new Random().Next(0, max[0]), new Random().Next(0, max[1]) };
+                    int[] position = { random.Next(0, max[0]), random.Next(0, max[1]) };
                     int local = 0;
-                    bool reverse = new Random().Next(0, 2) == 1;
-                    int localMax = (reverse ? max[1] / space : max[0] / space);
+                    bool reverse = random.Next(0, 2) == 1;
+                    int localMax = reverse ? max[1] / space : max[0] / space;
 
                     for (int i = 0; i < grainsToCreate; i++) {
                         this.SetCorrectGridElement(position[0], position[1], true);
+                        this.GetCorrectGridElement(position[0], position[1]).Refresh();
 
                         local++;
+
                         if (reverse) {
                             if (local == localMax) {
                                 position[0] += space;
@@ -268,7 +282,7 @@ namespace CellularAutomata2D.Classes {
 
         }
 
-        // Neibourhoods
+        // Neighbourhoods
 
         private int[,] GetAlgorithmConditions(int i, int j, AlgorithmMode algorithmMode) {
             switch (algorithmMode) {
@@ -383,7 +397,7 @@ namespace CellularAutomata2D.Classes {
             return grainIdKey;
         }
 
-        private int CheckConditions(int[,] conditions, Cell cell = null, BoundaryConditionType boundaryCondition = BoundaryConditionType.Periodic) {
+        private int CheckConditions(int[,] conditions, Cell cell = null, BoundaryConditionType boundaryConditionType = BoundaryConditionType.Periodic) {
             Dictionary<int, int> grainIds = new Dictionary<int, int>();
 
             if (cell != null && cell.GetStatus()) {
@@ -391,8 +405,8 @@ namespace CellularAutomata2D.Classes {
             }
 
             for (int i = 0; i < conditions.GetLength(0); i++) {
-                if (this.GetCorrectValue(conditions[i, 0], conditions[i, 1], boundaryCondition)) {
-                    int grainId = this.GetCorrectGridElement(conditions[i, 0], conditions[i, 1], boundaryCondition).GetGrainId();
+                if (this.GetCorrectValue(conditions[i, 0], conditions[i, 1], boundaryConditionType)) {
+                    int grainId = this.GetCorrectGridElement(conditions[i, 0], conditions[i, 1], boundaryConditionType).GetGrainId();
                     if (grainIds.ContainsKey(grainId)) {
                         grainIds[grainId]++;
                     } else {
@@ -404,42 +418,46 @@ namespace CellularAutomata2D.Classes {
             return this.GetBestGrainId(grainIds);
         }
 
-        public int CountNeighbourhoods(int i, int j, BoundaryConditionType boundaryCondition = BoundaryConditionType.Periodic) {
+        public int CountNeighbourhoods(int i, int j, BoundaryConditionType boundaryConditionTyoe = BoundaryConditionType.Periodic) {
             int counted = 0;
-            counted += this.GetCorrectValue(i - 1, j - 1, boundaryCondition) ? 1 : 0;
-            counted += this.GetCorrectValue(i - 1, j, boundaryCondition) ? 1 : 0;
-            counted += this.GetCorrectValue(i - 1, j + 1, boundaryCondition) ? 1 : 0;
-            counted += this.GetCorrectValue(i, j - 1, boundaryCondition) ? 1 : 0;
-            counted += this.GetCorrectValue(i, j + 1, boundaryCondition) ? 1 : 0;
-            counted += this.GetCorrectValue(i + 1, j - 1, boundaryCondition) ? 1 : 0;
-            counted += this.GetCorrectValue(i + 1, j, boundaryCondition) ? 1 : 0;
-            counted += this.GetCorrectValue(i + 1, j + 1, boundaryCondition) ? 1 : 0;
+            counted += this.GetCorrectValue(i - 1, j - 1, boundaryConditionTyoe) ? 1 : 0;
+            counted += this.GetCorrectValue(i - 1, j, boundaryConditionTyoe) ? 1 : 0;
+            counted += this.GetCorrectValue(i - 1, j + 1, boundaryConditionTyoe) ? 1 : 0;
+            counted += this.GetCorrectValue(i, j - 1, boundaryConditionTyoe) ? 1 : 0;
+            counted += this.GetCorrectValue(i, j + 1, boundaryConditionTyoe) ? 1 : 0;
+            counted += this.GetCorrectValue(i + 1, j - 1, boundaryConditionTyoe) ? 1 : 0;
+            counted += this.GetCorrectValue(i + 1, j, boundaryConditionTyoe) ? 1 : 0;
+            counted += this.GetCorrectValue(i + 1, j + 1, boundaryConditionTyoe) ? 1 : 0;
 
             return counted;
         }
 
-        public bool CheckNeighbourhoods(int i, int j, AlgorithmMode type, BoundaryConditionType boundaryCondition = BoundaryConditionType.Periodic) {
+        public bool CheckNeighbourhoods(int i, int j, AlgorithmMode algorithmMode, BoundaryConditionType boundaryConditionType = BoundaryConditionType.Periodic) {
             Dictionary<int, int> grainIds = new Dictionary<int, int>();
-            int grainId;
+            int grainId = -1;
 
-            switch (type) {
+            switch (algorithmMode) {
                 case AlgorithmMode.TheGameOfLife:
-                    grainId = this.CheckConditions(this.GetAlgorithmConditions(i, j, type), this.GetCorrectGridElement(i, j), boundaryCondition);
+                    grainId = this.CheckConditions(this.GetAlgorithmConditions(i, j, algorithmMode), this.GetCorrectGridElement(i, j), boundaryConditionType);
 
-                    if (this.CountNeighbourhoods(i, j, boundaryCondition) == 3 || this.GetCorrectValue(i, j, boundaryCondition) && this.CountNeighbourhoods(i, j, boundaryCondition) == 2) {
-                        grainId = this.CheckConditions(this.GetAlgorithmConditions(i, j, type), this.GetCorrectGridElement(i, j), boundaryCondition);
+                    if (this.CountNeighbourhoods(i, j, boundaryConditionType) == 3 || (this.GetCorrectValue(i, j, boundaryConditionType) && this.CountNeighbourhoods(i, j, boundaryConditionType) == 2)) {
+                        grainId = this.CheckConditions(this.GetAlgorithmConditions(i, j, algorithmMode), this.GetCorrectGridElement(i, j), boundaryConditionType);
 
-                        this.GetCorrectGridElement(i, j, boundaryCondition).SetGrainId(grainId);
+                        if (grainId == -1) return false;
+
+                        this.GetCorrectGridElement(i, j, boundaryConditionType).SetGrainId(grainId);
+
                         return true;
                     }
+
                     return false;
 
-                default:
-                    grainId = this.CheckConditions(this.GetAlgorithmConditions(i, j, type), this.GetCorrectGridElement(i, j), boundaryCondition);
+                default: // all grain growth algorithms
+                    grainId = this.CheckConditions(this.GetAlgorithmConditions(i, j, algorithmMode), this.GetCorrectGridElement(i, j), boundaryConditionType);
 
                     if (grainId == -1) return false;
 
-                    this.GetCorrectGridElement(i, j, boundaryCondition).SetGrainId(grainId);
+                    this.GetCorrectGridElement(i, j, boundaryConditionType).SetGrainId(grainId);
 
                     return true;
             }

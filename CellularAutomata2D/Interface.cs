@@ -16,7 +16,7 @@ namespace CellularAutomata2D {
     public partial class Interface : Form {
         // Configuration consts
 
-        private const int SIZE = 500;
+        private const int SIZE = 50;
 
         // GUI generation params
 

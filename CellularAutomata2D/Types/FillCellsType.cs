@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace CellularAutomata2D.Types {
-    public enum FillCellsType {
+    enum FillCellsType {
         ChaosRandom,
         SmartRandom,
         Empty

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace CellularAutomata2D.Types {
-    public enum AlgorithmMode {
+    enum AlgorithmMode {
         TheGameOfLife,
         GrainGrowthNeumann,
         GrainGrowthMoore,

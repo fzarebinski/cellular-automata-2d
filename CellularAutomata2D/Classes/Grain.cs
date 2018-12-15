@@ -9,7 +9,7 @@ namespace CellularAutomata2D.Classes {
     class Cell {
         private int grainId = -1;
         private bool status = false;
-        private string color = "#000000";
+        private string color = null;
 
         private static int i = 0;
 
@@ -30,6 +30,8 @@ namespace CellularAutomata2D.Classes {
         }
 
         public string GetGrainColor() {
+            if (this.color == null) this.color = ColorManager.GetHexColor(Cell.i, grainId);
+
             return this.color;
         }
 
@@ -38,7 +40,6 @@ namespace CellularAutomata2D.Classes {
         public bool SetStatus(bool status) {
             this.status = status;
 
-            if (this.status && this.color == "#000000") this.RecalculateColor();
             return true;
         }
 
@@ -58,13 +59,17 @@ namespace CellularAutomata2D.Classes {
 
         // Operations
 
-        public static bool RefreshAutoIncrement() {
+        public static void RefreshAutoIncrement() {
             Cell.i = 0;
-            return true;
         }
 
         public void RecalculateColor() {
             this.color = ColorManager.GetHexColor(Cell.i, grainId);
+        }
+
+        public void Refresh() {
+            this.grainId = ++Cell.i;
+            this.color = null;
         }
     }
 }
